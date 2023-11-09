@@ -2,22 +2,22 @@
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
-
+import Typography from "@mui/material/Typography";
 import axios from "axios";
-
 import Stack from "@mui/material/Stack";
-
+import Box from '@mui/material/Box';
 import { useEffect, useState } from "react";
+import { normalizeName, styleColor } from "../utils/helpFunc";
 
 const PokemonCard = ({ product }) => {
   const [pokomonTypes, setPokemonTypes] = useState([]);
   const [pokemonImage, setPokemonImage] = useState([]);
-
-  console.log(pokomonTypes);
+  
   useEffect(() => {
     axios
       .get(`${product.url}`)
       .then((response) => {
+        console.log(response.data);
         setPokemonTypes(response.data.types);
         setPokemonImage(response.data.sprites.other.dream_world.front_default);
       })
@@ -40,7 +40,10 @@ const PokemonCard = ({ product }) => {
         }}
       />
       <CardContent>
-        <h2>{product.name}</h2>
+        <Typography variant="h4" gutterBottom>
+          {normalizeName(product.name)}
+        </Typography>
+
         <Stack
           direction="row"
           justifyContent="center"
@@ -48,7 +51,11 @@ const PokemonCard = ({ product }) => {
           spacing={2}
         >
           {pokomonTypes.map((pok) => (
-            <div key={pok.slot}>{pok.type.name}</div>
+            <Box key={pok.slot} sx={styleColor(pok.type.name)}>
+              <Typography variant="h5" gutterBottom>
+                {pok.type.name}
+              </Typography>
+            </Box>
           ))}
         </Stack>
       </CardContent>
