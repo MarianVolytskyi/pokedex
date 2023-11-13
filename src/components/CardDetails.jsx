@@ -1,10 +1,12 @@
 /* eslint-disable react/prop-types */
-import axios from "axios";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import { Card, CardContent, CardMedia } from "@mui/material";
+import { Card, CardContent, CardMedia, Skeleton } from "@mui/material";
+import axios from "axios";
+import { setPokemonInfo, setSelectedPokemon } from "../redux/pokemonReducer";
 import { normalizeName } from "../utils/helpFunc";
 
 const style = {
@@ -19,43 +21,59 @@ const style = {
   p: 4,
 };
 
-export const CardDetails = ({
-  pokemon,
-  onClose,
-  pokomonTypes,
-  pokemonImage,
-}) => {
-  const [pokemonInfo, setPokemonInfo] = useState([]);
+export const CardDetails = ({ pokemon }) => {
+  const dispatch = useDispatch();
+  const pokemonInfo = useSelector(
+    (state) => state.pokemon.pokemonInfo[pokemon.name]
+  );
+  const types = useSelector((state) => state.pokemon.types[pokemon.name]);
+  const image = useSelector((state) => state.pokemon.images[pokemon.name]);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     axios
       .get(`${pokemon.url}`)
       .then((response) => {
-        setPokemonInfo(response.data);
+        const { abilities, stats, weight, moves } = response.data;
+
+        dispatch(
+          setPokemonInfo({
+            name: pokemon.name,
+            abilities,
+            stats,
+            weight,
+            moves,
+          })
+        );
       })
       .catch((error) => {
         console.error(error);
       })
       .finally();
-  }, []);
-  const [open, setOpen] = useState(true);
+  }, [dispatch, pokemon.name, pokemon.url]);
+
   const handleClose = () => {
     setOpen(false);
-    onClose(null);
+    dispatch(setSelectedPokemon(null));
   };
+
   return (
+  
     <div>
+       {!pokemonInfo && (<Skeleton  variant="rectangular" width={300} height={300}></Skeleton>)}
       <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
+         
         <Box sx={style}>
+         
           <Card sx={{ maxWidth: 300 }}>
             <CardMedia
               component="img"
-              image={pokemonImage}
+              image={image}
               title={pokemon.name}
               style={{
                 height: 260,
@@ -71,10 +89,10 @@ export const CardDetails = ({
                 Abilities:
               </Typography>
 
-              {pokemonInfo.abilities?.map((val) => (
+              {pokemonInfo?.abilities?.map((val) => (
                 <Box key={val.ability.name}>
                   <Typography variant="h6" gutterBottom>
-                    { '> '+ val.ability.name}
+                    {"> " + val.ability.name}
                   </Typography>
                 </Box>
               ))}
@@ -84,7 +102,7 @@ export const CardDetails = ({
                   <tr>
                     <td>Type</td>
                     <td>
-                      {pokomonTypes.map((pok) => (
+                      {types.map((pok) => (
                         <Typography key={pok.slot} variant="h8" gutterBottom>
                           {normalizeName(pok.type.name) + " "}
                         </Typography>
@@ -92,7 +110,7 @@ export const CardDetails = ({
                     </td>
                   </tr>
 
-                  {pokemonInfo.stats?.map((element, index) => (
+                  {pokemonInfo?.stats?.map((element, index) => (
                     <tr key={index}>
                       <td>{normalizeName(element.stat.name)}</td>
                       <td>{element.base_stat}</td>
@@ -101,11 +119,11 @@ export const CardDetails = ({
 
                   <tr>
                     <td>Weight</td>
-                    <td>{pokemonInfo.weight}</td>
+                    <td>{pokemonInfo?.weight}</td>
                   </tr>
                   <tr>
                     <td>Total moves</td>
-                    <td>{pokemonInfo.moves?.length}</td>
+                    <td>{pokemonInfo?.moves?.length}</td>
                   </tr>
                 </tbody>
               </table>

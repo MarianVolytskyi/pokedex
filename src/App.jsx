@@ -1,52 +1,30 @@
-import { useEffect, useState } from "react";
+import  { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Grid from "@mui/material/Grid";
 import { getAllPokemon } from "./api/api";
 import PokemonCard from "./components/Card";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-
+import { setAmount, setPokemons } from "./redux/pokemonReducer"; 
 
 const App = () => {
-  const [pokemons, setPokemons] = useState([]);
-  const [amount, setAmount] = useState(1);
-
-
+  const dispatch = useDispatch();
+  const pokemons = useSelector((state) => state.pokemon.pokemons);
+  const amount = useSelector((state) => state.pokemon.amount);
 
   useEffect(() => {
     getAllPokemon(amount).then((response) => {
-      setPokemons(response.data.results);
+      dispatch(setPokemons(response.data.results)); 
     });
-    return () => {};
-  }, [amount]);
-
-  // useEffect(() => {
-  //   getAllPokemon(999).then((response) => {
-  //     setAllPokemons(response.data.results);
-  //   });
-  //   return () => {};
-  // }, []);
-
-
-  // useEffect(() => {
-  //   axios
-  //   .get(`https://pokeapi.co/api/v2/type?limit=999`)
-  //   .then((response) => {
-  //     setTypes(response.data.results.map((obj) => obj.name))
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //   })
-  //   .finally();
-  //   return () => {};
-  // }, []);
- 
+  }, [amount, dispatch]);
 
   const handleIncrease = () => {
-    setAmount((cur) => cur + 1);
+
+    dispatch(setAmount(amount + 1));
   };
 
-
+  console.log(pokemons)
   return (
     <>
       <Container maxWidth="md">
@@ -57,7 +35,7 @@ const App = () => {
         <Grid container spacing={2} justifyContent="center">
           {pokemons.map((pokemon) => (
             <Grid item xs={12} sm={4} key={pokemon.name}>
-              <PokemonCard product={pokemon}/>
+              <PokemonCard pokemon={pokemon} />
             </Grid>
           ))}
         </Grid>
@@ -77,3 +55,4 @@ const App = () => {
 };
 
 export default App;
+

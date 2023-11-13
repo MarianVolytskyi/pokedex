@@ -1,4 +1,10 @@
 /* eslint-disable react/prop-types */
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setImages,
+  setSelectedPokemon,
+  setTypes,
+} from "../redux/pokemonReducer";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
@@ -6,37 +12,52 @@ import Typography from "@mui/material/Typography";
 import axios from "axios";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { normalizeName, styleColor } from "../utils/helpFunc";
 import { CardDetails } from "./CardDetails";
 
-const PokemonCard = ({ product }) => {
-  const [pokomonTypes, setPokemonTypes] = useState([]);
-  const [pokemonImage, setPokemonImage] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+const PokemonCard = ({ pokemon }) => {
+  const dispatch = useDispatch();
+  const types = useSelector((state) => state.pokemon.types[pokemon.name]);
+  const image = useSelector((state) => state.pokemon.images[pokemon.name]);
+  const selectedProduct = useSelector((state) => state.pokemon.selectedPokemon);
 
   useEffect(() => {
     axios
-      .get(`${product.url}`)
+      .get(`${pokemon.url}`)
       .then((response) => {
-        setPokemonTypes(response.data.types);
-        setPokemonImage(response.data.sprites.other.dream_world.front_default);
+        const pokemonTypes = response.data.types;
+        const pokemonImage =
+          response.data.sprites.other.dream_world.front_default;
+
+        dispatch(setTypes({ name: pokemon.name, types: pokemonTypes }));
+        dispatch(setImages({ name: pokemon.name, image: pokemonImage }));
       })
       .catch((error) => {
         console.error(error);
-      })
-      .finally();
-  }, []);
+      });
+  }, [dispatch, pokemon.name, pokemon.url]);
+
   const handleClick = () => {
-    setSelectedProduct(product);
+    dispatch(setSelectedPokemon(pokemon));
   };
   return (
     <>
-      <Card sx={{ maxWidth: 260 }} onClick={handleClick}>
+      <Card
+        sx={{
+          maxWidth: 260,
+          transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+          "&:hover": {
+            boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)",
+            transform: "scale(1.05)",
+          },
+        }}
+        onClick={handleClick}
+      >
         <CardMedia
           component="img"
-          image={pokemonImage}
-          title={product.name}
+          image={image}
+          title={pokemon.name}
           style={{
             height: 260,
             width: 260,
@@ -45,7 +66,7 @@ const PokemonCard = ({ product }) => {
         />
         <CardContent>
           <Typography variant="h4" gutterBottom textAlign="center">
-            {normalizeName(product.name)}
+            {normalizeName(pokemon.name)}
           </Typography>
 
           <Stack
@@ -54,25 +75,18 @@ const PokemonCard = ({ product }) => {
             alignItems="center"
             spacing={2}
           >
-            {pokomonTypes.map((pok) => (
-              <Box key={pok.slot} sx={styleColor(pok.type.name)}>
-                <Typography variant="h5" gutterBottom>
-                  {pok.type.name}
-                </Typography>
-              </Box>
-            ))}
+            {types &&
+              types.map((pok) => (
+                <Box key={pok.slot} sx={styleColor(pok.type.name)}>
+                  <Typography variant="h5" gutterBottom>
+                    {pok.type.name}
+                  </Typography>
+                </Box>
+              ))}
           </Stack>
         </CardContent>
-        
       </Card>
-      {selectedProduct && (
-        <CardDetails
-          pokemon={selectedProduct}
-          onClose={setSelectedProduct}
-          pokomonTypes={pokomonTypes}
-          pokemonImage={pokemonImage}
-        />
-      )}
+      {selectedProduct && <CardDetails pokemon={selectedProduct} />}
     </>
   );
 };
