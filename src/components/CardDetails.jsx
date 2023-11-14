@@ -4,9 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
-import { Card, CardContent, CardMedia, Skeleton } from "@mui/material";
+import { Card, CardContent, CardMedia } from "@mui/material";
 import axios from "axios";
-import { setPokemonInfo, setSelectedPokemon } from "../redux/pokemonReducer";
+import { setPokemonInfo, setSelectedPokemon } from "../redux/selectedPokemonSlice";
 import { normalizeName } from "../utils/helpFunc";
 
 const style = {
@@ -24,7 +24,7 @@ const style = {
 export const CardDetails = ({ pokemon }) => {
   const dispatch = useDispatch();
   const pokemonInfo = useSelector(
-    (state) => state.pokemon.pokemonInfo[pokemon.name]
+    (state) => state.selectedPokemon.pokemonInfo[pokemon.name]
   );
   const types = useSelector((state) => state.pokemon.types[pokemon.name]);
   const image = useSelector((state) => state.pokemon.images[pokemon.name]);
@@ -58,79 +58,77 @@ export const CardDetails = ({ pokemon }) => {
   };
 
   return (
-  
     <div>
-       {!pokemonInfo && (<Skeleton  variant="rectangular" width={300} height={300}></Skeleton>)}
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-         
-        <Box sx={style}>
-         
-          <Card sx={{ maxWidth: 300 }}>
-            <CardMedia
-              component="img"
-              image={image}
-              title={pokemon.name}
-              style={{
-                height: 260,
-                width: 260,
-                objectFit: "contain",
-              }}
-            />
-            <CardContent>
-              <Typography variant="h4" gutterBottom textAlign="center">
-                {normalizeName(pokemon.name)}
-              </Typography>
-              <Typography variant="h5" gutterBottom>
-                Abilities:
-              </Typography>
+      
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box sx={{ ...style, maxHeight: "100vh", overflowY: "none" }}>
+            <Card sx={{ maxWidth: 300 }}>
+              <CardMedia
+                component="img"
+                image={image}
+                title={pokemon.name}
+                style={{
+                  height: 260,
+                  width: 260,
+                  objectFit: "contain",
+                }}
+              />
+              <CardContent>
+                <Typography variant="h4" gutterBottom textAlign="center">
+                  {normalizeName(pokemon.name)}
+                </Typography>
+                <Typography variant="h5" gutterBottom>
+                  Abilities:
+                </Typography>
 
-              {pokemonInfo?.abilities?.map((val) => (
-                <Box key={val.ability.name}>
-                  <Typography variant="h6" gutterBottom>
-                    {"> " + val.ability.name}
-                  </Typography>
-                </Box>
-              ))}
+                {pokemonInfo?.abilities?.map((val) => (
+                  <Box key={val.ability.name}>
+                    <Typography variant="h6" gutterBottom>
+                      {"> " + val.ability.name}
+                    </Typography>
+                  </Box>
+                ))}
 
-              <table border="1px solid black" width={240}>
-                <tbody>
-                  <tr>
-                    <td>Type</td>
-                    <td>
-                      {types.map((pok) => (
-                        <Typography key={pok.slot} variant="h8" gutterBottom>
-                          {normalizeName(pok.type.name) + " "}
-                        </Typography>
-                      ))}
-                    </td>
-                  </tr>
-
-                  {pokemonInfo?.stats?.map((element, index) => (
-                    <tr key={index}>
-                      <td>{normalizeName(element.stat.name)}</td>
-                      <td>{element.base_stat}</td>
+                <table border="1px solid black" width={240}>
+                  <tbody>
+                    <tr>
+                      <td>Type</td>
+                      <td>
+                        {types.map((pok) => (
+                          <Typography key={pok.slot} variant="h8" gutterBottom>
+                            {normalizeName(pok.type.name) + " "}
+                          </Typography>
+                        ))}
+                      </td>
                     </tr>
-                  ))}
 
-                  <tr>
-                    <td>Weight</td>
-                    <td>{pokemonInfo?.weight}</td>
-                  </tr>
-                  <tr>
-                    <td>Total moves</td>
-                    <td>{pokemonInfo?.moves?.length}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-        </Box>
-      </Modal>
+                    {pokemonInfo?.stats?.map((element, index) => (
+                      <tr key={index}>
+                        <td>{normalizeName(element.stat.name)}</td>
+                        <td>{element.base_stat}</td>
+                      </tr>
+                    ))}
+
+                    <tr>
+                      <td>Weight</td>
+                      <td>{pokemonInfo?.weight}</td>
+                    </tr>
+                    <tr>
+                      <td>Total moves</td>
+                      <td>{pokemonInfo?.moves?.length}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          </Box>
+        </Modal>
+      
     </div>
   );
 };

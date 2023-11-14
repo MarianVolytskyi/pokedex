@@ -1,24 +1,43 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
+
+export const fetchPokemonData = createAsyncThunk(
+  "pokemon/fetchPokemonData",
+  async (url, { dispatch }) => {
+    try {
+      const response = await axios.get(url);
+      const pokemonTypes = response.data.types;
+      const pokemonImage =
+        response.data.sprites.other.dream_world.front_default;
+
+      dispatch(
+        setPokemonTypes({ name: response.data.name, types: pokemonTypes })
+      );
+      dispatch(
+        setPokemonImage({ name: response.data.name, image: pokemonImage })
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
 
 export const pokemonSlice = createSlice({
   name: "pokemon",
   initialState: {
-    selectedPokemon: null,
     types: {},
     images: {},
     pokemons: [],
     amount: 1,
-    pokemonInfo: {},
   },
   reducers: {
-    setTypes: (state, action) => {
-      state.types[action.payload.name] = action.payload.types;
+    setPokemonTypes: (state, action) => {
+      const { name, types } = action.payload;
+      state.types[name] = types;
     },
-    setImages: (state, action) => {
-      state.images[action.payload.name] = action.payload.image;
-    },
-    setSelectedPokemon: (state, action) => {
-      state.selectedPokemon = action.payload;
+    setPokemonImage: (state, action) => {
+      const { name, image } = action.payload;
+      state.images[name] = image;
     },
     setPokemons: (state, action) => {
       state.pokemons = action.payload;
@@ -26,26 +45,17 @@ export const pokemonSlice = createSlice({
     setAmount: (state, action) => {
       state.amount = action.payload;
     },
-    setPokemonInfo: (state, action) => {
-      const { name, abilities, stats, weight, moves } = action.payload;
-      state.pokemonInfo[name] = {
-        abilities,
-        stats,
-        weight,
-        moves,
-      };
-    },
   },
 });
 
+// export const selectPokemonData = (state) => state.pokemon;
+
 export const {
   setPokemonData,
-  setSelectedPokemon,
   setPokemons,
   setAmount,
-  setTypes,
-  setImages,
-  setPokemonInfo,
+  setPokemonTypes,
+  setPokemonImage,
 } = pokemonSlice.actions;
 
 export default pokemonSlice.reducer;
